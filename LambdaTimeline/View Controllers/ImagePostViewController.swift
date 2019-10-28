@@ -8,8 +8,18 @@
 
 import UIKit
 import Photos
+import CoreImage
 
 class ImagePostViewController: ShiftableViewController {
+    @IBOutlet weak var saturation: UISlider!
+    
+    @IBOutlet weak var falseColor: UISlider!
+    @IBOutlet weak var colorMatrix: UISlider!
+    @IBOutlet weak var brightness: UILabel!
+    
+    @IBOutlet weak var sharpen: UILabel!
+    private let context = CIContext(options: nil)
+    let filter = CIFilter(name: "CIFalseColor")!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -18,6 +28,23 @@ class ImagePostViewController: ShiftableViewController {
         
         updateViews()
     }
+    
+    var originalImage: UIImage? {
+        didSet {
+            guard let image = originalImage else { return }
+            
+            var scaledSize = imageView.bounds.size
+            let scale = UIScreen.main.scale
+            scaledSize = CGSize(width: scaledSize.width * scale, height: scaledSize.height * scale)
+            scaledImage = image.imageByScaling(toSize: scaledSize)
+        }
+    }
+    
+    var scaledImage: UIImage? {
+          didSet {
+              updateImage()
+          }
+      }
     
     func updateViews() {
         
@@ -105,6 +132,40 @@ class ImagePostViewController: ShiftableViewController {
         presentImagePickerController()
     }
     
+  private func filterImage(_ image: UIImage) -> UIImage? {
+
+           //setup
+
+           guard let cgImage = image.cgImage else {return nil}
+           let ciImage = CIImage(cgImage: cgImage)
+            
+           //set up filter
+           filter.setValue(saturation, forKey: "inputImage")
+           filter.setValue(NSNumber(value: 1.5 ), forKey: "inputSaturation")
+           filter.setValue(, forKey: "inputBrightness")
+
+           guard let outPutCIImage = filter.outputImage else {return nil}
+
+           guard let outPutCGImage = context.createCGImage(outPutCIImage, from: CGRect(origin: CPPoint.zero, size: image.size)) else { return nil }
+
+           return nil
+       }
+    
+    private func presentImagePickerController() {
+
+            guard UIImagePickerController.isSourceTypeAvailable(.photoLibrary) else {
+                NSLog("The photo library is not available")
+                return
+            }
+
+            let imagePicker = UIImagePickerController()
+            imagePicker.sourceType = .photoLibrary
+            imagePicker.delegate = self
+
+            present(imagePicker, animated: true, completion: nil)
+        }
+    }
+
     func setImageViewHeight(with aspectRatio: CGFloat) {
         
         imageHeightConstraint.constant = imageView.frame.size.width * aspectRatio

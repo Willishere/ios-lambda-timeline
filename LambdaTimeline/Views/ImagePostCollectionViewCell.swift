@@ -14,6 +14,7 @@ class ImagePostCollectionViewCell: UICollectionViewCell {
         super.layoutSubviews()
         setupLabelBackgroundView()
     }
+    
     override func prepareForReuse() {
         super.prepareForReuse()
         
@@ -39,6 +40,7 @@ class ImagePostCollectionViewCell: UICollectionViewCell {
     func setImage(_ image: UIImage?) {
         imageView.image = image
     }
+
 
     var post: Post? {
         didSet {
